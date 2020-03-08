@@ -1,0 +1,34 @@
+When I have written code in the past, I've either 
+	a) joined an existing system and therefore not decided what language/technology to use
+	b) made something small enough that python, which excels at small prototypes, is a fine choice
+This has worked ok, but what do I use if I want to start a significant project myself? 
+The point of this thing is to find out.
+
+I want to rank the languages on the following criteria
+	-how much I personally like working in it
+	-syntax for 
+		string parsing,
+		multi dimensional arrays, 
+		threads,
+		opening files, 
+		getting info from online,
+		using others' code
+	-programming time performance
+	-compile time performance
+	-runtime performance on heavy math
+	-making a simple GUI
+	-project/build workflow 
+		-with multiple files/folders
+		-code autoformatting
+		-unit tests
+		-IDE / library quality
+
+
+I think I'll make a standard neural net from scratch, with a GUI layer that allows the user to do things like choose data to feed into the net, tune the net architecture, save/load the architecture or the trained net, see some data visualizations and so on. This is not code I desperately want to see in the world, but it has enough moving parts that the choice of language could matter, and having a visualizer for neural nets would be pretty useful for demonstrations.
+
+These are the languages I want to test:
+python
+rust
+go
+C#
+C++
