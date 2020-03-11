@@ -1,5 +1,12 @@
 package main
-import "fmt"
+
+import (
+	"fmt"
+)
+
+var print = fmt.Println
+var write = fmt.Printf
+
 func main() {
-    fmt.Println("Hello World")
+	print("hello")
 }
