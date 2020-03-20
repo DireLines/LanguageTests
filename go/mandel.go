@@ -52,7 +52,7 @@ func main() {
 	jobs := make(chan mandelInput)
 	results := make(chan mandelOutput)
 	for i := 0; i < numThreads; i++ {
-		go worker(i, jobs, results)
+		go worker(i, jobs, results, step, bottom, top)
 	}
 
 	//pool results
@@ -68,13 +68,7 @@ func main() {
 	re := left
 	im := top
 	for re <= right && i < fineness {
-		for im >= bottom && j < fineness {
-			jobs <- mandelInput{pixel{i, j}, complex(re, im)}
-			im -= step
-			j++
-		}
-		j = 0
-		im = top
+		jobs <- mandelInput{pixel{i, j}, complex(re, im)}
 		re += step
 		i++
 	}
@@ -82,7 +76,7 @@ func main() {
 	print("done computing")
 
 	//save results as image
-	saveToPNG(pointsComputed, maxIters, "mandel.png")
+	saveToPNG(pointsComputed, maxIters, "mandelbrot.png")
 }
 
 func step(z complex128, c complex128) complex128 {
@@ -98,10 +92,17 @@ func iterate(c complex128, max_iters int) int {
 	}
 	return max_iters
 }
-func worker(id int, jobs <-chan mandelInput, results chan<- mandelOutput) {
-	for j := range jobs {
-		// results <- mandelOutput{j.p, 1}//overhead timing test
-		results <- mandelOutput{j.p, iterate(j.c, maxIters)}
+func worker(id int, jobs <-chan mandelInput, results chan<- mandelOutput, step float64, bottom float64, top float64) {
+	for job := range jobs {
+		i := job.p.x
+		re := real(job.c)
+		j := 0
+		im := top
+		for im >= bottom && j < fineness {
+			results <- mandelOutput{pixel{i, j}, iterate(complex(re, im), maxIters)}
+			im -= step
+			j++
+		}
 	}
 }
 
