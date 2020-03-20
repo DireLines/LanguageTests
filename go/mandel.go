@@ -82,7 +82,7 @@ func main() {
 	print("done computing")
 
 	//save results as image
-	saveToPNG(pointsComputed, maxIters, "mandelbrot.png")
+	saveToPNG(pointsComputed, maxIters, "mandel.png")
 }
 
 func step(z complex128, c complex128) complex128 {
@@ -116,10 +116,7 @@ func saveToPNG(pixels [fineness][fineness]int, maxIters int, filename string) {
 			myImage.Set(y, x, color.Gray{uint8(val)})
 		}
 	}
-	outputFile, err := os.Create(filename)
-	if err != nil {
-		print("wuh-oh")
-	}
+	outputFile, _ := os.Create(filename)
 	png.Encode(outputFile, myImage)
 	outputFile.Close()
 }
