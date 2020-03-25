@@ -1,5 +1,5 @@
 use derive_more::Add;
-use rand::Rng;
+use image::ImageBuffer;
 use rayon::prelude::*;
 use std::ops::Mul;
 use std::time::Instant;
@@ -31,8 +31,8 @@ impl Complex {
 
 #[derive(Debug, Copy, Clone)]
 struct Pixel {
-    x: i32,
-    y: i32,
+    x: u32,
+    y: u32,
 }
 
 #[derive(Debug)]
@@ -44,31 +44,53 @@ struct MandelbrotInput {
 #[derive(Debug)]
 struct MandelbrotOutput {
     pix: Pixel,
-    iterations: i32,
+    iterations: u32,
 }
 
 fn main() {
+    let resolution = 5000;
+    let max_iters = 1000;
     let compute_time = Instant::now();
     let arr = mandelbrot(
-        500,
+        resolution,
         Complex {
             re: -0.25,
             im: 0.65,
         },
         0.025,
-        1000,
+        max_iters,
     );
     println!(
         "computation done in {:.3} seconds",
         compute_time.elapsed().as_secs_f64()
     );
+    let image_time = Instant::now();
+    let mut imgbuf = ImageBuffer::new(resolution, resolution);
+    arr.iter().for_each(|p| {
+        let x = p.pix.x;
+        let y = p.pix.y;
+        let i = {
+            if p.iterations == max_iters {
+                0
+            } else {
+                (p.iterations % 255) as u8
+            }
+        };
+        let pixel = imgbuf.get_pixel_mut(y, x);
+        *pixel = image::Rgb([i, i, i]);
+    });
+    imgbuf.save("mandelbrot.png").unwrap();
+    println!(
+        "image writing done in {:.3} seconds",
+        image_time.elapsed().as_secs_f64()
+    );
 }
 
 fn mandelbrot(
-    resolution: i32,
+    resolution: u32,
     center: Complex,
     width: f64,
-    max_iters: i32,
+    max_iters: u32,
 ) -> Vec<MandelbrotOutput> {
     let points = mandelbrot_points(resolution, center, width);
     points
@@ -77,7 +99,7 @@ fn mandelbrot(
         .collect()
 }
 
-fn mandelbrot_points(resolution: i32, center: Complex, width: f64) -> Vec<MandelbrotInput> {
+fn mandelbrot_points(resolution: u32, center: Complex, width: f64) -> Vec<MandelbrotInput> {
     let half = width / 2.0;
     let step = width / (resolution as f64);
     (0..resolution * resolution)
@@ -96,7 +118,7 @@ fn mandelbrot_points(resolution: i32, center: Complex, width: f64) -> Vec<Mandel
         .collect()
 }
 
-fn mandelbrot_iterate(p: &MandelbrotInput, max_iters: i32) -> MandelbrotOutput {
+fn mandelbrot_iterate(p: &MandelbrotInput, max_iters: u32) -> MandelbrotOutput {
     let mut z = Complex { re: 0.0, im: 0.0 };
     for i in 0..max_iters {
         if z.sqr_magnitude() >= 4.0 {
