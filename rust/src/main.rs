@@ -1,33 +1,7 @@
-use derive_more::Add;
 use image::ImageBuffer;
+use num_complex::Complex;
 use rayon::prelude::*;
-use std::ops::Mul;
 use std::time::Instant;
-
-#[derive(Debug, Add, Copy, Clone)]
-struct Complex {
-    re: f64,
-    im: f64,
-}
-
-impl Mul for Complex {
-    type Output = Self;
-    fn mul(self, rhs: Self) -> Self {
-        Complex {
-            re: self.re * rhs.re - self.im * rhs.im,
-            im: self.re * rhs.im + self.im * rhs.re,
-        }
-    }
-}
-
-impl Complex {
-    fn sqr_magnitude(self) -> f64 {
-        self.re * self.re + self.im * self.im
-    }
-    fn magnitude(self) -> f64 {
-        self.sqr_magnitude().sqrt()
-    }
-}
 
 #[derive(Debug, Copy, Clone)]
 struct Pixel {
@@ -38,7 +12,7 @@ struct Pixel {
 #[derive(Debug)]
 struct MandelbrotInput {
     pix: Pixel,
-    c: Complex,
+    c: Complex<f64>,
 }
 
 #[derive(Debug)]
@@ -53,7 +27,7 @@ fn main() {
     let compute_time = Instant::now();
     let arr = mandelbrot(
         resolution,
-        Complex {
+        Complex::<f64> {
             re: -0.25,
             im: 0.65,
         },
@@ -88,7 +62,7 @@ fn main() {
 
 fn mandelbrot(
     resolution: u32,
-    center: Complex,
+    center: Complex<f64>,
     width: f64,
     max_iters: u32,
 ) -> Vec<MandelbrotOutput> {
@@ -99,7 +73,7 @@ fn mandelbrot(
         .collect()
 }
 
-fn mandelbrot_points(resolution: u32, center: Complex, width: f64) -> Vec<MandelbrotInput> {
+fn mandelbrot_points(resolution: u32, center: Complex<f64>, width: f64) -> Vec<MandelbrotInput> {
     let half = width / 2.0;
     let step = width / (resolution as f64);
     (0..resolution * resolution)
@@ -109,7 +83,7 @@ fn mandelbrot_points(resolution: u32, center: Complex, width: f64) -> Vec<Mandel
             let y = ind % resolution;
             MandelbrotInput {
                 pix: Pixel { x: x, y: y },
-                c: Complex {
+                c: Complex::<f64> {
                     re: x as f64 * step + center.re - half,
                     im: y as f64 * step + center.im - half,
                 },
@@ -119,9 +93,9 @@ fn mandelbrot_points(resolution: u32, center: Complex, width: f64) -> Vec<Mandel
 }
 
 fn mandelbrot_iterate(p: &MandelbrotInput, max_iters: u32) -> MandelbrotOutput {
-    let mut z = Complex { re: 0.0, im: 0.0 };
+    let mut z = Complex::<f64> { re: 0.0, im: 0.0 };
     for i in 0..max_iters {
-        if z.sqr_magnitude() >= 4.0 {
+        if z.norm_sqr() >= 4.0 {
             return MandelbrotOutput {
                 pix: p.pix.clone(),
                 iterations: i,
@@ -135,6 +109,7 @@ fn mandelbrot_iterate(p: &MandelbrotInput, max_iters: u32) -> MandelbrotOutput {
     };
 }
 
-fn mandelbrot_step(z: Complex, c: Complex) -> Complex {
+#[inline(always)]
+fn mandelbrot_step(z: Complex<f64>, c: Complex<f64>) -> Complex<f64> {
     z * z + c
 }
