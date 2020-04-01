@@ -25,12 +25,12 @@ struct MandelbrotOutput {
 fn main() {
     let resolution = env::args()
         .nth(1)
-        .expect("you need to supply a resolution")
+        .unwrap_or(5000.to_string())
         .parse()
         .unwrap_or(5000);
     let max_iters = env::args()
         .nth(2)
-        .expect("you need to supply a max # of iterations")
+        .unwrap_or(1000.to_string())
         .parse()
         .unwrap_or(1000);
     let compute_time = Instant::now();
