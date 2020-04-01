@@ -22,17 +22,19 @@ struct MandelbrotOutput {
     iterations: u32,
 }
 
+fn getarg<T>(index: usize, default: T) -> T
+where
+    T: std::str::FromStr,
+{
+    match env::args().nth(index) {
+        Some(arg) => arg.parse().unwrap_or(default),
+        None => default,
+    }
+}
+
 fn main() {
-    let resolution = env::args()
-        .nth(1)
-        .unwrap_or(5000.to_string())
-        .parse()
-        .unwrap_or(5000);
-    let max_iters = env::args()
-        .nth(2)
-        .unwrap_or(1000.to_string())
-        .parse()
-        .unwrap_or(1000);
+    let resolution = getarg::<u32>(1, 5000);
+    let max_iters = getarg::<u32>(2, 1000);
     let compute_time = Instant::now();
     let arr = mandelbrot(
         resolution,
