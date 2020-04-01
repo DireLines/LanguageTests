@@ -1,6 +1,7 @@
 use image::ImageBuffer;
 use num_complex::Complex;
 use rayon::prelude::*;
+use std::env;
 use std::time::Instant;
 
 #[derive(Debug, Copy, Clone)]
@@ -22,8 +23,16 @@ struct MandelbrotOutput {
 }
 
 fn main() {
-    let resolution = 5000;
-    let max_iters = 1000;
+    let resolution = env::args()
+        .nth(1)
+        .expect("you need to supply a resolution")
+        .parse()
+        .unwrap_or(5000);
+    let max_iters = env::args()
+        .nth(2)
+        .expect("you need to supply a max # of iterations")
+        .parse()
+        .unwrap_or(1000);
     let compute_time = Instant::now();
     let arr = mandelbrot(
         resolution,
@@ -82,7 +91,7 @@ fn mandelbrot_points(resolution: u32, center: Complex<f64>, width: f64) -> Vec<M
             let x = ind / resolution;
             let y = ind % resolution;
             MandelbrotInput {
-                pix: Pixel { x: x, y: y },
+                pix: Pixel { x, y },
                 c: Complex::<f64> {
                     re: x as f64 * step + center.re - half,
                     im: y as f64 * step + center.im - half,
@@ -97,14 +106,14 @@ fn mandelbrot_iterate(p: &MandelbrotInput, max_iters: u32) -> MandelbrotOutput {
     for i in 0..max_iters {
         if z.norm_sqr() >= 4.0 {
             return MandelbrotOutput {
-                pix: p.pix.clone(),
+                pix: p.pix,
                 iterations: i,
             };
         }
         z = mandelbrot_step(z, p.c)
     }
     return MandelbrotOutput {
-        pix: p.pix.clone(),
+        pix: p.pix,
         iterations: max_iters,
     };
 }
