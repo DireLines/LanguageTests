@@ -77,8 +77,7 @@ fn mandelbrot(
     width: f64,
     max_iters: u32,
 ) -> Vec<MandelbrotOutput> {
-    let points = mandelbrot_points(resolution, center, width);
-    points
+    mandelbrot_points(resolution, center, width)
         .par_iter()
         .map(|p| mandelbrot_iterate(p, max_iters))
         .collect()
