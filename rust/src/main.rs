@@ -1,125 +1,28 @@
-use image::ImageBuffer;
-use num_complex::Complex;
+use ndarray::arr2;
+use ndarray::Array;
+use rand::Rng;
 use rayon::prelude::*;
-use std::env;
-use std::time::Instant;
-
-#[derive(Debug, Copy, Clone)]
-struct Pixel {
-    x: u32,
-    y: u32,
-}
-
-#[derive(Debug)]
-struct MandelbrotInput {
-    pix: Pixel,
-    c: Complex<f64>,
-}
-
-#[derive(Debug)]
-struct MandelbrotOutput {
-    pix: Pixel,
-    iterations: u32,
-}
-
-fn getarg<T>(index: usize, default: T) -> T
-where
-    T: std::str::FromStr,
-{
-    match env::args().nth(index) {
-        Some(arg) => arg.parse().unwrap_or(default),
-        None => default,
-    }
-}
 
 fn main() {
-    let resolution = getarg::<u32>(1, 5000);
-    let max_iters = getarg::<u32>(2, 1000);
-    let compute_time = Instant::now();
-    let arr = mandelbrot(
-        resolution,
-        Complex::<f64> {
-            re: -0.25,
-            im: 0.65,
-        },
-        0.025,
-        max_iters,
-    );
-    println!(
-        "computation done in {:.3} seconds",
-        compute_time.elapsed().as_secs_f64()
-    );
-    let image_time = Instant::now();
-    let mut imgbuf = ImageBuffer::new(resolution, resolution);
-    arr.iter().for_each(|p| {
-        let x = p.pix.x;
-        let y = p.pix.y;
-        let i = {
-            if p.iterations == max_iters {
-                0
-            } else {
-                (p.iterations % 255) as u8
-            }
-        };
-        let pixel = imgbuf.get_pixel_mut(y, x);
-        *pixel = image::Rgb([i, i, i]);
-    });
-    imgbuf.save("mandelbrot.png").unwrap();
-    println!(
-        "image writing done in {:.3} seconds",
-        image_time.elapsed().as_secs_f64()
-    );
+    let a = arr2(&[[1, 2, 3], [4, 5, 6]]);
+
+    let b = arr2(&[[6, 5, 4], [3, 2, 1]]);
+
+    let sum = &a + &b;
+
+    println!("{}", a);
+    println!("+");
+    println!("{}", b);
+    println!("=");
+    println!("{}", sum);
 }
 
-fn mandelbrot(
-    resolution: u32,
-    center: Complex<f64>,
-    width: f64,
-    max_iters: u32,
-) -> Vec<MandelbrotOutput> {
-    mandelbrot_points(resolution, center, width)
-        .par_iter()
-        .map(|p| mandelbrot_iterate(p, max_iters))
-        .collect()
-}
-
-fn mandelbrot_points(resolution: u32, center: Complex<f64>, width: f64) -> Vec<MandelbrotInput> {
-    let half = width / 2.0;
-    let step = width / (resolution as f64);
-    (0..resolution * resolution)
+fn randoms(howmany: u32) -> Vec<i64> {
+    (0..howmany)
         .into_par_iter()
-        .map(|ind| {
-            let x = ind / resolution;
-            let y = ind % resolution;
-            MandelbrotInput {
-                pix: Pixel { x, y },
-                c: Complex::<f64> {
-                    re: x as f64 * step + center.re - half,
-                    im: y as f64 * step + center.im - half,
-                },
-            }
+        .map(|_| {
+            let mut rng = rand::thread_rng();
+            rng.gen_range(1, 21)
         })
         .collect()
-}
-
-fn mandelbrot_iterate(p: &MandelbrotInput, max_iters: u32) -> MandelbrotOutput {
-    let mut z = Complex::<f64> { re: 0.0, im: 0.0 };
-    for i in 0..max_iters {
-        if z.norm_sqr() >= 4.0 {
-            return MandelbrotOutput {
-                pix: p.pix,
-                iterations: i,
-            };
-        }
-        z = mandelbrot_step(z, p.c)
-    }
-    return MandelbrotOutput {
-        pix: p.pix,
-        iterations: max_iters,
-    };
-}
-
-#[inline(always)]
-fn mandelbrot_step(z: Complex<f64>, c: Complex<f64>) -> Complex<f64> {
-    z * z + c
 }
